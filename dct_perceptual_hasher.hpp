@@ -74,7 +74,6 @@ private:
         Magick::Image image(image_);
 
         image.type(Magick::GrayscaleType);
-        image.gaussianBlur(2, 3.0);
 
         Magick::Geometry geometry(N, N);
         geometry.aspect(true);
