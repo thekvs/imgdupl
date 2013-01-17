@@ -152,6 +152,24 @@ fill_hashes_db(sqlite3 *db, const Args &args)
 }
 
 void
+insert_cluster(sqlite3 *db, sqlite3_stmt *stmt, uint32_t cluster_id, const std::string &images)
+{
+    int rc;
+
+    rc = sqlite3_bind_int(stmt, 1, cluster_id);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_int() failed: \"%s\"", sqlite3_errmsg(db));
+
+    rc = sqlite3_bind_text(stmt, 2, images.c_str(), images.size(), SQLITE_TRANSIENT);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_text() failed: \"%s\"", sqlite3_errmsg(db));
+
+    rc = sqlite3_step(stmt);
+    THROW_EXC_IF_FAILED(rc == SQLITE_DONE, "sqlite3_step() failed: \"%s\"", sqlite3_errmsg(db));
+
+    rc = sqlite3_reset(stmt);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_reset() failed: \"%s\"", sqlite3_errmsg(db));
+}
+
+void
 fill_clusters_db(sqlite3 *db, const Args &args)
 {
     std::ifstream data(args.data_file.c_str(), std::ios::in);
@@ -182,18 +200,7 @@ fill_clusters_db(sqlite3 *db, const Args &args)
         cluster_id = boost::lexical_cast<uint32_t>(tokens[1]);
 
         if (prev_cluster_id != 0 && cluster_id != prev_cluster_id) {
-            rc = sqlite3_bind_int(stmt, 1, prev_cluster_id);
-            THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_int() failed: \"%s\"", sqlite3_errmsg(db));
-
-            rc = sqlite3_bind_text(stmt, 2, images.c_str(), images.size(), SQLITE_TRANSIENT);
-            THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_text() failed: \"%s\"", sqlite3_errmsg(db));
-
-            rc = sqlite3_step(stmt);
-            THROW_EXC_IF_FAILED(rc == SQLITE_DONE, "sqlite3_step() failed: \"%s\"", sqlite3_errmsg(db));
-
-            rc = sqlite3_reset(stmt);
-            THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_reset() failed: \"%s\"", sqlite3_errmsg(db));
-
+            insert_cluster(db, stmt, prev_cluster_id, images);
             images = tokens[0];
         } else {
             if (images.size() > 0) {
@@ -205,6 +212,9 @@ fill_clusters_db(sqlite3 *db, const Args &args)
 
         prev_cluster_id = cluster_id;
     }
+
+    // insert last cluster
+    insert_cluster(db, stmt, cluster_id, images);
 
     rc = sqlite3_exec(db, "COMMIT", NULL, NULL, &errmsg);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_exec() failed: \"%s\"", errmsg);
