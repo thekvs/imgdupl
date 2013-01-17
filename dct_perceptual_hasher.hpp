@@ -13,7 +13,7 @@
 
 namespace imgdupl {
 
-template<int N, int S=8>
+template<int N, int Bits>
 class DCTHasher {
 public:
 
@@ -96,15 +96,23 @@ private:
 
         DCTMatrix c = dct * img * dct_t;
 
-        Eigen::Matrix<float, S, S> top_left = c.topLeftCorner(S, S);
-        Eigen::Matrix<float, S, S> top_left_copy(top_left);
+        float coeffs[Bits];
+        float coeffs_copy[Bits];
 
-        Eigen::Map< Eigen::Matrix<float, 1, S * S> > v(top_left.data());
-        Eigen::Map< Eigen::Matrix<float, 1, S * S> > v_copy(top_left_copy.data());
+        for (int i = 0, j = 0, k = 0; k < Bits; k++) {
+            coeffs[k] = c(i,j);
+            j++;
+            i--;
+            if (i < 0) {
+                i = j;
+                j = 0;
+            }
+        }
 
-        std::sort(v_copy.data(), v_copy.data() + v_copy.size());
+        memcpy(coeffs_copy, coeffs, sizeof(coeffs));
+        std::sort(coeffs_copy, coeffs_copy + Bits);
 
-        float median = (v_copy[v_copy.size() / 2] + v_copy[v_copy.size() / 2 - 1]) / 2.0;
+        float median = (coeffs_copy[Bits / 2] + coeffs_copy[Bits / 2 - 1]) / 2.0;
 
         PHash phash;
 
@@ -112,10 +120,8 @@ private:
         int      basic_hash_bits_count = sizeof(hash) * 8;
         uint64_t one = 1;
 
-        size_t vsz = v.size();
-
-        for (size_t i = 0; i < vsz; i++) {
-            if (v[i] > median) {
+        for (size_t i = 0; i < Bits; i++) {
+            if (coeffs[i] > median) {
                 hash |= one;
             }
 
@@ -128,7 +134,7 @@ private:
             }
         }
 
-        if (vsz % basic_hash_bits_count != 0) {
+        if (Bits % basic_hash_bits_count != 0) {
             phash.push_back(hash);
         }
 

@@ -16,7 +16,7 @@ using namespace imgdupl;
 
 namespace bfs = boost::filesystem;
 
-typedef DCTHasher<32, 11> Hasher;
+typedef DCTHasher<50, 64 * 2> Hasher;
 
 void usage(const char *program);
 std::pair<bool, PHash> calc_image_hash(const std::string &image_file, const Hasher &hasher);
