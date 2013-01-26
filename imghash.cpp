@@ -123,6 +123,7 @@ main(int argc, char **argv)
         }
     } else {
         std::cerr << path << " does not exist" << std::endl;
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;

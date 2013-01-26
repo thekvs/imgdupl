@@ -250,7 +250,8 @@ main(int argc, char **argv)
         sqlite3_shutdown();
     } catch (std::exception &exc) {
         std::cerr << "Error: " << exc.what() << std::endl;
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
