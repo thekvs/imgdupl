@@ -71,7 +71,7 @@ create_clusters_table(sqlite3 *db, const Args &args)
     char          st[512];
     sqlite3_stmt *stmt = NULL;
 
-    snprintf(st, sizeof(st), "CREATE TABLE %s (cluster_id INTEGER UNIQUE, images TEXT)",
+    snprintf(st, sizeof(st), "CREATE TABLE %s (cluster_id INTEGER UNIQUE, count INTEGER, images TEXT)",
         args.clusters_table.c_str());
     
     int rc = sqlite3_prepare_v2(db, st, strlen(st), &stmt, NULL);
@@ -152,14 +152,17 @@ fill_hashes_db(sqlite3 *db, const Args &args)
 }
 
 void
-insert_cluster(sqlite3 *db, sqlite3_stmt *stmt, uint32_t cluster_id, const std::string &images)
+insert_cluster(sqlite3 *db, sqlite3_stmt *stmt, uint32_t cluster_id, uint32_t count, const std::string &images)
 {
     int rc;
 
     rc = sqlite3_bind_int(stmt, 1, cluster_id);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_int() failed: \"%s\"", sqlite3_errmsg(db));
 
-    rc = sqlite3_bind_text(stmt, 2, images.c_str(), images.size(), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_int(stmt, 2, count);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_int() failed: \"%s\"", sqlite3_errmsg(db));
+
+    rc = sqlite3_bind_text(stmt, 3, images.c_str(), images.size(), SQLITE_TRANSIENT);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_text() failed: \"%s\"", sqlite3_errmsg(db));
 
     rc = sqlite3_step(stmt);
@@ -178,7 +181,7 @@ fill_clusters_db(sqlite3 *db, const Args &args)
     char          st[512];
     sqlite3_stmt *stmt = NULL;
 
-    snprintf(st, sizeof(st), "INSERT INTO %s (cluster_id, images) VALUES(?, ?)", args.clusters_table.c_str());
+    snprintf(st, sizeof(st), "INSERT INTO %s (cluster_id, count, images) VALUES(?, ?, ?)", args.clusters_table.c_str());
 
     int rc = sqlite3_prepare_v2(db, st, strlen(st), &stmt, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_prepare_v2() failed: \"%s\"", sqlite3_errmsg(db));
@@ -193,6 +196,7 @@ fill_clusters_db(sqlite3 *db, const Args &args)
 
     uint32_t    cluster_id, prev_cluster_id = 0;
     std::string images;
+    uint32_t    images_count = 0;
 
     while (std::getline(data, line)) {
         tokenize(line, tokens, "\t");
@@ -200,13 +204,16 @@ fill_clusters_db(sqlite3 *db, const Args &args)
         cluster_id = boost::lexical_cast<uint32_t>(tokens[1]);
 
         if (prev_cluster_id != 0 && cluster_id != prev_cluster_id) {
-            insert_cluster(db, stmt, prev_cluster_id, images);
+            insert_cluster(db, stmt, prev_cluster_id, images_count, images);
             images = tokens[0];
+            images_count = 1;
         } else {
             if (images.size() > 0) {
                 images.append("," + tokens[0]);
+                images_count++;
             } else {
                 images = tokens[0];
+                images_count = 1;
             }
         }
 
@@ -214,7 +221,7 @@ fill_clusters_db(sqlite3 *db, const Args &args)
     }
 
     // insert last cluster
-    insert_cluster(db, stmt, cluster_id, images);
+    insert_cluster(db, stmt, cluster_id, images_count, images);
 
     rc = sqlite3_exec(db, "COMMIT", NULL, NULL, &errmsg);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_exec() failed: \"%s\"", errmsg);
