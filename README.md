@@ -23,15 +23,25 @@ This is a standard CMake project.
 Example dataset can be downloaded from [here](https://s3-eu-west-1.amazonaws.com/sigterm.ru/public/imgdupl-dataset-example.tar)
 
 * You need to build perceptual hashes for the images.
-    * `$ ./imghash /tmp/imgdupl-dataset-example >/tmp/hashes.txt`
+<pre>
+$ ./imghash /tmp/imgdupl-dataset-example >/tmp/hashes.txt
+</pre>
 * You need to export results into SQLite database.
-    * `$ ./export2db hashes /tmp/hashes.txt /tmp/imgdupl.db`
+<pre>
+$ ./export2db hashes /tmp/hashes.txt /tmp/imgdupl.db
+</pre>
 * You need to clusterize images.
-    * `$ ./clusterizer /tmp/imgdupl.db 32 2 >/tmp/clusters_32.txt`
+<pre>
+$ ./clusterizer /tmp/imgdupl.db 32 2 >/tmp/clusters_32.txt
+</pre>
 * You need to export results of clusterization stage into SQLite database.
-    * `$ ./export2db clusters /tmp/clusters_32.txt /tmp/imgdupl.db clusters_32`
+<pre>
+$ ./export2db clusters /tmp/clusters_32.txt /tmp/imgdupl.db clusters_32
+</pre>
 * Print clusters.
-    * `$ ./print-clusters /tmp/imgdupl.db clusters_32`
+<pre>
+$ ./print-clusters /tmp/imgdupl.db clusters_32
+</pre>
 
 You may vary perceptual hashes matching threshold constant (second argument to the clusterizer utility) to
 improve quality.
