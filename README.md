@@ -35,3 +35,8 @@ Example dataset can be downloaded from [here](https://s3-eu-west-1.amazonaws.com
 
 You may vary perceptual hashes matching threshold constant (second argument to the clusterizer utility) to
 improve quality.
+
+If you want to view clusterization results more visually you can run www stand from the viewer directory:
+<pre>
+$ ./webstand.py 127.0.0.1:9090 /tmp/imgdupl.db clusters_32
+</pre>
