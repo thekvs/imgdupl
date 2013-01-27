@@ -1,0 +1,45 @@
+$def with (form, next_random, contents)
+<html><head>
+<title>WebStand</title>
+<style type="text/css">
+  .wrong {
+    float:left;
+    clear:both;
+    color: #cc0000;
+  }
+
+  input {
+    float:left;
+  }
+
+  input[type="button"], input[type="submit"] {
+    font: 20px bold;
+    padding: 5px 15px 5px 15px;
+  }
+
+  th {
+    font-size: 20px;
+    padding: 10px;
+  }
+  h1 {
+    float:right;
+    margin: 0px;
+    margin-right:30px;
+    font-size:20px;
+    padding: 10px;
+  }
+  img {
+    border: solid 1px #cccccc;
+   }
+</style>
+</head>
+<body style="padding: 30px" onload="document.forms['cluster_form'].elements['show_cluster'].focus()">
+<input type="button" value='Random' onclick="window.location.href='$next_random'">
+<form name='cluster_form'>
+    <div style="float:left; margin-right: 15px; margin-left: 30px">
+    $:form.render()
+    </div>
+    <input type="submit" name="show" value="OK">
+</form>
+$:contents
+</body></html>

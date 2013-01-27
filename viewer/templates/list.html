@@ -1,0 +1,8 @@
+$def with (cluster, images, make_url)
+<input type="button" value='Thumbnails' onclick="window.location.href='/$cluster/grid'"
+        style="float:right; margin-light:30px">
+<h1>Cluster $cluster</h1>
+<div style="clear:both; margin-top:30px; float:left">
+$for img in images:
+    <img src="$make_url(img)"><br>
+</div>
