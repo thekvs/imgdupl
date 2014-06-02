@@ -44,7 +44,7 @@ include(CheckTypeSize)
 include(CheckIncludeFile)
 include(CheckCXXCompilerFlag)
 
-find_package(Boost COMPONENTS thread filesystem system)
+find_package(Boost REQUIRED COMPONENTS thread filesystem system)
 
 pkg_check_modules(GRAPHICSMAGICK REQUIRED GraphicsMagick++)
 pkg_check_modules(EIGEN3 REQUIRED eigen3)
