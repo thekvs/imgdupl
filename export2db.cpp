@@ -194,7 +194,7 @@ fill_clusters_db(sqlite3 *db, const Args &args)
     rc = sqlite3_exec(db, "BEGIN", NULL, NULL, &errmsg);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_exec() failed: \"%s\"", errmsg);
 
-    uint32_t    cluster_id, prev_cluster_id = 0;
+    uint32_t    cluster_id = 0, prev_cluster_id = 0;
     std::string images;
     uint32_t    images_count = 0;
 
