@@ -73,7 +73,7 @@ public:
         queue.pop();
     }
 
-    size_t size()
+    size_t size() const
     {
         std::unique_lock<std::mutex> lock(mutex);
 
@@ -361,7 +361,7 @@ main(int argc, char **argv)
 
     size_t distance;
     size_t job_length;
-    int    jobs_count;
+    size_t jobs_count;
 
     ClusterEntries entries;
 
@@ -397,7 +397,7 @@ main(int argc, char **argv)
             cur_task_it = end_task_it = cur_it;
             std::advance(end_task_it, job_length);
 
-            for (int i = 0; i < jobs_count; i++) {
+            for (size_t i = 0; i < jobs_count; i++) {
                 TaskSmartPtr task = TaskSmartPtr(new Task(cluster_base_hash,
                     cur_task_it, end_task_it));
                 new_tasks_queue.push(task);
@@ -412,7 +412,7 @@ main(int argc, char **argv)
 
             // gather results
             TaskSmartPtr task;
-            for (int i = 0; i < jobs_count; i++) {
+            for (size_t i = 0; i < jobs_count; i++) {
                 accomplished_tasks_queue.wait_and_pop(task);
 
                 auto cur_cluster_it = task->cluster_entries.begin();
