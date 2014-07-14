@@ -163,10 +163,10 @@ operator<<(std::ostream &out, const PHash &mhash)
     bool is_first = true;
 
     for (auto &v: mhash) {
-        if (!is_first) {
-            out << HASH_PRINT_DELIMETER;
-        } else {
+        if (is_first) {
             is_first = false;
+        } else {
+            out << HASH_PRINT_DELIMETER;
         }
         
         out << v;
@@ -263,9 +263,7 @@ distance(const PHash &mh1, const PHash &mh2, int threshold)
         dist += hamming_distance(mh1[i], mh2[i]);
     }
 
-    bool result = (dist <= threshold);
-
-    return result;
+    return (dist <= threshold);
 }
 
 void
@@ -368,7 +366,7 @@ main(int argc, char **argv)
     auto cur_it = images.begin();
     auto end_it = images.end();
 
-    for (; cur_it != end_it;) {
+    while (cur_it != end_it) {
         if (cur_it->processed || cur_it->hash[0] == 0) {
             cur_it++;
         } else {

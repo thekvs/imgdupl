@@ -62,12 +62,11 @@ print(sqlite3 *db, std::string clusters_table)
         
         std::string path;
         Tokens      images_id;
-        uint32_t    id;
 
         tokenize(images, images_id, ",");
 
         for (auto &v: images_id) {
-            id = boost::lexical_cast<uint32_t>(v);
+            auto id = boost::lexical_cast<uint32_t>(v);
 
             rc = sqlite3_bind_int(select_path_stmt, 1, id);
             THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_bind_int() failed: \"%s\"", sqlite3_errmsg(db));

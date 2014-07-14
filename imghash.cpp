@@ -29,10 +29,10 @@ operator<<(std::ostream &out, const PHash &phash)
     bool is_first = true;
 
     BOOST_FOREACH(const PHash::value_type &h, phash) {
-        if (!is_first) {
-            out << HASH_PRINT_DELIMETER;
-        } else {
+        if (is_first) {
             is_first = false;
+        } else {
+            out << HASH_PRINT_DELIMETER;
         }
         
         out << h;
@@ -91,7 +91,7 @@ calc_image_hash(const std::string &image_file, const Hasher &hasher)
     try {
         image.read(image_file.c_str());
         image.trim();
-    } catch (Magick::Exception &e) {
+    } catch (Magick::Exception&) {
         status = false;
         goto end;        
     }
