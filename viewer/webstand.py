@@ -20,6 +20,7 @@ class Clusters:
         cursor = self._cursor()
         cursor.execute('SELECT COUNT(*) FROM %s' % (self._clusters_table_name,))
         self._len = cursor.fetchone()[0]
+        self.mime_detector = magic.Magic(mime=True, uncompress=True)
 
     def __getitem__(self, cluster):
         cursor = self._cursor()
@@ -54,12 +55,12 @@ class Clusters:
             mime_detector.load()
             self._local.mime_detector = mime_detector
         return self._local.mime_detector
-    
+
     def single_image(self, image_id):
         cursor = self._cursor()
         cursor.execute("SELECT path FROM hashes WHERE id=?", (image_id,))
         path = cursor.fetchone()[0]
-        mime_type = self._mime_detector().file(path)
+        mime_type = self.mime_detector.from_file(path)
         return (path, mime_type)
 
 
