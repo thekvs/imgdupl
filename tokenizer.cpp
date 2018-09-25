@@ -1,9 +1,10 @@
 #include "tokenizer.hpp"
 
-namespace imgdupl {
+namespace imgdupl
+{
 
 void
-tokenize(const std::string &data, Tokens &tokens, const char *sep)
+tokenize(const std::string& data, Tokens& tokens, const char* sep)
 {
     Separator separator(sep);
     Tokenizer tokenizer(data, separator);

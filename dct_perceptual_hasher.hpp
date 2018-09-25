@@ -11,28 +11,31 @@
 
 #include "phash.hpp"
 
-namespace imgdupl {
+namespace imgdupl
+{
 
-template<int N, int Bits>
-class DCTHasher {
+template <int N, int Bits>
+class DCTHasher
+{
 public:
-
     DCTHasher()
     {
         make_dct_matrix();
         dct_t = dct.transpose();
     }
 
-    ~DCTHasher() {}
+    ~DCTHasher()
+    {
+    }
 
-    std::pair<bool, PHash> hash(const Magick::Image &original_image) const
+    std::pair<bool, PHash> hash(const Magick::Image& original_image) const
     {
         PHash phash;
-        bool  status = true;
+        bool status = true;
 
         try {
             phash = hash_impl(original_image);
-        } catch (Magick::Exception &e) {
+        } catch (Magick::Exception& e) {
             status = false;
         }
 
@@ -40,7 +43,6 @@ public:
     }
 
 private:
-
     typedef Eigen::Matrix<float, N, N> DCTMatrix;
     typedef Eigen::Matrix<float, N, N> ImgMatrix;
 
@@ -66,10 +68,10 @@ private:
             for (i = 0; i < cols; i++) {
                 dct(k, i) = c * cos((M_PI / (2 * n)) * k * (2 * i + 1));
             }
-        }       
+        }
     }
 
-    PHash hash_impl(const Magick::Image &image_) const
+    PHash hash_impl(const Magick::Image& image_) const
     {
         Magick::Image image(image_);
 
@@ -83,13 +85,13 @@ private:
         unsigned int width = image.size().width();
         unsigned int height = image.size().height();
 
-        Magick::PixelPacket *pixels = image.getPixels(0, 0, width, height);
+        Magick::PixelPacket* pixels = image.getPixels(0, 0, width, height);
 
         ImgMatrix img;
 
         for (unsigned int i = 0; i < width; i++) {
             for (unsigned int j = 0; j < height; j++) {
-                img(i,j) = static_cast<float>(pixels->red);
+                img(i, j) = static_cast<float>(pixels->red);
                 ++pixels;
             }
         }
@@ -100,7 +102,7 @@ private:
         float coeffs_copy[Bits];
 
         for (int i = 0, j = 0, k = 0; k < Bits; k++) {
-            coeffs[k] = c(i,j);
+            coeffs[k] = c(i, j);
             j++;
             i--;
             if (i < 0) {
@@ -117,7 +119,7 @@ private:
         PHash phash;
 
         uint64_t hash = 0;
-        int      basic_hash_bits_count = sizeof(hash) * 8;
+        int basic_hash_bits_count = sizeof(hash) * 8;
         uint64_t one = 1;
 
         for (size_t i = 0; i < Bits; i++) {

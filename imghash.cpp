@@ -18,23 +18,23 @@ namespace bfs = boost::filesystem;
 
 typedef DCTHasher<50, 64 * 2> Hasher;
 
-void usage(const char *program);
-std::pair<bool, PHash> calc_image_hash(const std::string &image_file, const Hasher &hasher);
-void process_file(const bfs::path &file, const Hasher &hasher);
-void process_directory(std::string directory, const Hasher &hasher);
+void usage(const char* program);
+std::pair<bool, PHash> calc_image_hash(const std::string& image_file, const Hasher& hasher);
+void process_file(const bfs::path& file, const Hasher& hasher);
+void process_directory(std::string directory, const Hasher& hasher);
 
 std::ostream&
-operator<<(std::ostream &out, const PHash &phash)
+operator<<(std::ostream& out, const PHash& phash)
 {
     bool is_first = true;
 
-    BOOST_FOREACH(const PHash::value_type &h, phash) {
+    BOOST_FOREACH (const PHash::value_type& h, phash) {
         if (is_first) {
             is_first = false;
         } else {
             out << HASH_PRINT_DELIMETER;
         }
-        
+
         out << h;
     }
 
@@ -42,22 +42,22 @@ operator<<(std::ostream &out, const PHash &phash)
 }
 
 void
-usage(const char *program)
+usage(const char* program)
 {
     std::cout << "Usage: " << program << " <path>" << std::endl;
     std::cout << std::endl << "Where:" << std::endl;
     std::cout << "  path  -- single file or directory (in this case process all files)" << std::endl;
-    
+
     exit(0);
 }
 
 void
-process_file(const bfs::path &file, const Hasher &hasher)
+process_file(const bfs::path& file, const Hasher& hasher)
 {
     if (bfs::exists(file) && bfs::is_regular_file(file)) {
         std::string filename = file.string();
 
-        bool  status;
+        bool status;
         PHash phash;
 
         boost::tie(status, phash) = calc_image_hash(filename, hasher);
@@ -70,7 +70,7 @@ process_file(const bfs::path &file, const Hasher &hasher)
 }
 
 void
-process_directory(std::string directory, const Hasher &hasher)
+process_directory(std::string directory, const Hasher& hasher)
 {
     bfs::path root(directory);
     bfs::recursive_directory_iterator cur_it(root), end_it;
@@ -81,10 +81,10 @@ process_directory(std::string directory, const Hasher &hasher)
 }
 
 std::pair<bool, PHash>
-calc_image_hash(const std::string &image_file, const Hasher &hasher)
+calc_image_hash(const std::string& image_file, const Hasher& hasher)
 {
     PHash phash;
-    bool  status = true;
+    bool status = true;
 
     Magick::Image image;
 
@@ -93,7 +93,7 @@ calc_image_hash(const std::string &image_file, const Hasher &hasher)
         image.trim();
     } catch (Magick::Exception&) {
         status = false;
-        goto end;        
+        goto end;
     }
 
     boost::tie(status, phash) = hasher.hash(image);
@@ -103,7 +103,7 @@ end:
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
     if (argc < 2) {
         usage(argv[0]);

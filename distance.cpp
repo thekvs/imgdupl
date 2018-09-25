@@ -20,7 +20,7 @@ hamming_distance(uint64_t hash1, uint64_t hash2)
 }
 
 int
-dist(const std::string &h1, const std::string &h2)
+dist(const std::string& h1, const std::string& h2)
 {
     Tokens mh1, mh2;
 
@@ -30,7 +30,7 @@ dist(const std::string &h1, const std::string &h2)
     // FIXME: sanity check that mh1.size() == mh2.size() needed
 
     size_t hash_size = mh1.size();
-    int    dist = 0;
+    int dist = 0;
 
     for (size_t i = 0; i < hash_size; i++) {
         dist += hamming_distance(boost::lexical_cast<uint64_t>(mh1[i]), boost::lexical_cast<uint64_t>(mh2[i]));
@@ -40,7 +40,7 @@ dist(const std::string &h1, const std::string &h2)
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << "<hash1> <hash2>" << std::endl;
@@ -52,7 +52,7 @@ main(int argc, char **argv)
         std::string hash_string2 = argv[2];
 
         std::cout << "Hamming distance: " << dist(hash_string1, hash_string2) << std::endl;
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }

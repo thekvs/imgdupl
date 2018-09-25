@@ -6,13 +6,14 @@
 
 #include <boost/tokenizer.hpp>
 
-namespace imgdupl {
+namespace imgdupl
+{
 
-typedef std::vector<std::string>    Tokens;
+typedef std::vector<std::string> Tokens;
 typedef boost::char_separator<char> Separator;
 typedef boost::tokenizer<Separator> Tokenizer;
 
-void tokenize(const std::string &data, Tokens &tokens, const char *separator);
+void tokenize(const std::string& data, Tokens& tokens, const char* separator);
 
 } // namespace imgdupl
 

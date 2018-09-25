@@ -4,7 +4,8 @@
 #include <vector>
 #include <stdint.h>
 
-namespace imgdupl {
+namespace imgdupl
+{
 
 typedef std::vector<uint64_t> PHash;
 
