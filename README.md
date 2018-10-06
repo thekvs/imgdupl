@@ -4,49 +4,48 @@ becomes not very accurate.
 
 ## Building
 
-Compilation was tested on Ubuntu 12.10 with packages from the list below installed by stantard
+This is a standard CMake project.
+
+Compilation was tested on Ubuntu 14.04 with packages from the list below installed by stantard
 means (apt-get install etc.).
 
 ### Requirements:
-* GCC >= 4.7 (for C++11 features)
+* GCC >= 4.8 (for C++11 features)
 * CMake
 * [GraphicsMagick](http://www.graphicsmagick.org/)
 * Boost
 * [Eigen3](http://eigen.tuxfamily.org/)
 * Sqlite3
 
-### Compilation
-This is a standard CMake project.
-
 ## Usage
 
 Example dataset can be downloaded from [here](https://s3-eu-west-1.amazonaws.com/sigterm.ru/public/imgdupl-dataset-example.tar)
 
 * You need to build perceptual hashes for the images.
-<pre>
+```
 $ ./imghash /tmp/imgdupl-dataset-example >/tmp/hashes.txt
-</pre>
+```
 * You need to export results into SQLite database.
-<pre>
+```
 $ ./export2db hashes /tmp/hashes.txt /tmp/imgdupl.db
-</pre>
+```
 * You need to clusterize images.
-<pre>
+```
 $ ./clusterizer /tmp/imgdupl.db 32 2 >/tmp/clusters_32.txt
-</pre>
+```
 * You need to export results of clusterization stage into SQLite database.
-<pre>
+```
 $ ./export2db clusters /tmp/clusters_32.txt /tmp/imgdupl.db clusters_32
-</pre>
+```
 * Print clusters.
-<pre>
-$ ./print-clusters /tmp/imgdupl.db clusters_32
-</pre>
+```
+$ print-clusters --db-file /tmp/imgdupl.5.db --table clusters_32 --min-size 3
+```
 
 You may vary perceptual hashes matching threshold constant (second argument to the clusterizer utility) to
 improve quality.
 
 If you want to view clusterization results more visually you can run www stand from the viewer directory:
-<pre>
+```
 $ ./webstand.py 127.0.0.1:9090 /tmp/imgdupl.db clusters_32
-</pre>
+```

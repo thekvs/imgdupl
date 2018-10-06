@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <third_party/nlohmann/json.hpp>
+#include <third_party/cxxopts/cxxopts.hpp>
 
 #include "hash_delimeter.hpp"
 #include "tokenizer.hpp"
@@ -19,6 +20,7 @@ using namespace imgdupl;
 // key is a cluster id, value is an array of images' filenames
 using Cluster = std::map<std::string, std::vector<std::string>>;
 
+// all clusters as an array of maps
 using Clusters = std::vector<Cluster>;
 
 void
@@ -34,15 +36,31 @@ usage(const char* program)
 }
 
 void
-print(sqlite3* db, std::string clusters_table, int min_cluster_size)
+print(const cxxopts::ParseResult& opts)
 {
+    int min_cluster_size = 1;
+    if (opts.count("min-size") > 0) {
+        min_cluster_size = opts["min-size"].as<int>();
+    }
+
+    std::string db_file = opts["db-file"].as<std::string>();
+    std::string clusters_table = opts["table"].as<std::string>();
+
+    sqlite3* db = NULL;
+    int rc;
+
+    sqlite3_initialize();
+
+    rc = sqlite3_open_v2(db_file.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_open_v2() failed");
+
     char iterate_over_clusters_st[512];
     sqlite3_stmt* iterate_over_clusters_stmt = NULL;
 
     snprintf(iterate_over_clusters_st, sizeof(iterate_over_clusters_st), "SELECT cluster_id,images FROM %s WHERE count >= %d",
         clusters_table.c_str(), min_cluster_size);
 
-    int rc = sqlite3_prepare_v2(db, iterate_over_clusters_st, strlen(iterate_over_clusters_st), &iterate_over_clusters_stmt, NULL);
+    rc = sqlite3_prepare_v2(db, iterate_over_clusters_st, strlen(iterate_over_clusters_st), &iterate_over_clusters_stmt, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_prepare_v2() failed: \"%s\"", sqlite3_errmsg(db));
 
     char select_path_st[512];
@@ -100,38 +118,43 @@ print(sqlite3* db, std::string clusters_table, int min_cluster_size)
 
     rc = sqlite3_finalize(iterate_over_clusters_stmt);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_finalize() failed: \"%s\"", sqlite3_errmsg(db));
+
+    rc = sqlite3_close(db);
+    THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_close() failed: %i", rc);
+
+    sqlite3_shutdown();
 }
 
 int
 main(int argc, char** argv)
 {
-    if (argc < 3) {
-        usage(argv[0]);
-    }
-
-    std::string db_file = argv[1];
-    std::string clusters_table = argv[2];
-
-    int min_cluster_size = 1;
-    if (argc > 3) {
-        min_cluster_size = std::atoi(argv[3]);
-    }
-
     try {
-        sqlite3_initialize();
+        cxxopts::Options args(argv[0], "print clusters of perceptually similar images");
 
-        sqlite3* db = NULL;
-        int rc;
+        // clang-format off
+        args.add_options()
+            ("h,help","show this help and exit")
+            ("d,db-file", "SQLite database file", cxxopts::value<std::string>())
+            ("t,table", "name of a table with clusters in database", cxxopts::value<std::string>())
+            ("s,min-size", "minimal cluster size", cxxopts::value<int>())
+            ;
+        // clang-format on
 
-        rc = sqlite3_open_v2(db_file.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
-        THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_open_v2() failed");
+        auto opts = args.parse(argc, argv);
 
-        print(db, clusters_table, min_cluster_size);
+        if (opts.count("help")) {
+            std::cout << args.help() << std::endl;
+            return EXIT_SUCCESS;
+        }
 
-        rc = sqlite3_close(db);
-        THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_close() failed: %i", rc);
+        if ((opts.count("db-file") == 0 && opts.count("d") == 0) || (opts.count("table") == 0 && opts.count("t") == 0)) {
+            std::cerr << std::endl
+                      << "Error: you have to specify --db-file and --table parameters. Run with --help for help." << std::endl
+                      << std::endl;
+            return EXIT_FAILURE;
+        }
 
-        sqlite3_shutdown();
+        print(opts);
     } catch (std::exception& exc) {
         std::cerr << "Error: " << exc.what() << std::endl;
         return EXIT_FAILURE;
