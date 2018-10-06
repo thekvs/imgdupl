@@ -8,11 +8,18 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <third_party/nlohmann/json.hpp>
+
 #include "hash_delimeter.hpp"
 #include "tokenizer.hpp"
 #include "exc.hpp"
 
 using namespace imgdupl;
+
+// key is a cluster id, value is an array of images' filenames
+using Cluster = std::map<std::string, std::vector<std::string>>;
+
+using Clusters = std::vector<Cluster>;
 
 void
 usage(const char* program)
@@ -45,6 +52,8 @@ print(sqlite3* db, std::string clusters_table, int min_cluster_size)
     rc = sqlite3_prepare_v2(db, select_path_st, strlen(select_path_st), &select_path_stmt, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_prepare_v2() failed: \"%s\"", sqlite3_errmsg(db));
 
+    Clusters clusters;
+
     for (;;) {
         rc = sqlite3_step(iterate_over_clusters_stmt);
         THROW_EXC_IF_FAILED(rc == SQLITE_ROW || rc == SQLITE_DONE, "sqlite3_step() failed: \"%s\"", sqlite3_errmsg(db));
@@ -56,7 +65,7 @@ print(sqlite3* db, std::string clusters_table, int min_cluster_size)
         std::string images = std::string(reinterpret_cast<const char*>(sqlite3_column_text(iterate_over_clusters_stmt, 1)),
             sqlite3_column_bytes(iterate_over_clusters_stmt, 1));
 
-        std::cout << "Cluster " << cluster_id << ":" << std::endl;
+        Cluster cluster;
 
         std::string path;
         Tokens images_id;
@@ -74,15 +83,17 @@ print(sqlite3* db, std::string clusters_table, int min_cluster_size)
 
             path = std::string(
                 reinterpret_cast<const char*>(sqlite3_column_text(select_path_stmt, 0)), sqlite3_column_bytes(select_path_stmt, 0));
-
-            std::cout << "  " << path << std::endl;
+            cluster[std::to_string(cluster_id)].push_back(path);
 
             rc = sqlite3_reset(select_path_stmt);
             THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_reset() failed: \"%s\"", sqlite3_errmsg(db));
         }
 
-        std::cout << std::endl;
+        clusters.push_back(cluster);
     }
+
+    nlohmann::json js = clusters;
+    std::cout << js.dump(4) << std::endl;
 
     rc = sqlite3_finalize(select_path_stmt);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_finalize() failed: \"%s\"", sqlite3_errmsg(db));
