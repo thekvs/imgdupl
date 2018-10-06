@@ -17,21 +17,23 @@ using namespace imgdupl;
 void
 usage(const char* program)
 {
-    std::cout << "Usage: " << program << " <db_file> <clusters_table>" << std::endl;
+    std::cout << "Usage: " << program << " <db_file> <clusters_table> [<min_size>]" << std::endl;
     std::cout << std::endl << "Where:" << std::endl;
     std::cout << "  db_file         -- SQLite database file" << std::endl;
     std::cout << "  clusters_table  -- name of a table in SQLite database with clusters" << std::endl;
+    std::cout << "  min_size        -- minimal cluster size (default: 1)" << std::endl;
 
     exit(0);
 }
 
 void
-print(sqlite3* db, std::string clusters_table)
+print(sqlite3* db, std::string clusters_table, int min_cluster_size)
 {
     char iterate_over_clusters_st[512];
     sqlite3_stmt* iterate_over_clusters_stmt = NULL;
 
-    snprintf(iterate_over_clusters_st, sizeof(iterate_over_clusters_st), "SELECT cluster_id,images FROM %s", clusters_table.c_str());
+    snprintf(iterate_over_clusters_st, sizeof(iterate_over_clusters_st), "SELECT cluster_id,images FROM %s WHERE count >= %d",
+        clusters_table.c_str(), min_cluster_size);
 
     int rc = sqlite3_prepare_v2(db, iterate_over_clusters_st, strlen(iterate_over_clusters_st), &iterate_over_clusters_stmt, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_prepare_v2() failed: \"%s\"", sqlite3_errmsg(db));
@@ -99,6 +101,11 @@ main(int argc, char** argv)
     std::string db_file = argv[1];
     std::string clusters_table = argv[2];
 
+    int min_cluster_size = 1;
+    if (argc > 3) {
+        min_cluster_size = std::atoi(argv[3]);
+    }
+
     try {
         sqlite3_initialize();
 
@@ -108,7 +115,7 @@ main(int argc, char** argv)
         rc = sqlite3_open_v2(db_file.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
         THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_open_v2() failed");
 
-        print(db, clusters_table);
+        print(db, clusters_table, min_cluster_size);
 
         rc = sqlite3_close(db);
         THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_close() failed: %i", rc);
