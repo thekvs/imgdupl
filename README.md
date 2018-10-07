@@ -39,7 +39,7 @@ $ ./export2db clusters /tmp/clusters_32.txt /tmp/imgdupl.db clusters_32
 ```
 * Print clusters.
 ```
-$ print-clusters --db-file /tmp/imgdupl.5.db --table clusters_32 --min-size 3
+$ print-clusters --database /tmp/imgdupl.db --table clusters_32 --min-size 3
 ```
 
 You may vary perceptual hashes matching threshold constant (second argument to the clusterizer utility) to
