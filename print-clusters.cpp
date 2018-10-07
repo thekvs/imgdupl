@@ -24,18 +24,6 @@ using Cluster = std::map<std::string, std::vector<std::string>>;
 using Clusters = std::vector<Cluster>;
 
 void
-usage(const char* program)
-{
-    std::cout << "Usage: " << program << " <db_file> <clusters_table> [<min_size>]" << std::endl;
-    std::cout << std::endl << "Where:" << std::endl;
-    std::cout << "  db_file         -- SQLite database file" << std::endl;
-    std::cout << "  clusters_table  -- name of a table in SQLite database with clusters" << std::endl;
-    std::cout << "  min_size        -- minimal cluster size (default: 1)" << std::endl;
-
-    exit(0);
-}
-
-void
 print(const cxxopts::ParseResult& opts)
 {
     int min_cluster_size = 1;
@@ -43,22 +31,22 @@ print(const cxxopts::ParseResult& opts)
         min_cluster_size = opts["min-size"].as<int>();
     }
 
-    std::string db_file = opts["db-file"].as<std::string>();
-    std::string clusters_table = opts["table"].as<std::string>();
+    std::string database = opts["database"].as<std::string>();
+    std::string table = opts["table"].as<std::string>();
 
     sqlite3* db = NULL;
     int rc;
 
     sqlite3_initialize();
 
-    rc = sqlite3_open_v2(db_file.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
+    rc = sqlite3_open_v2(database.c_str(), &db, SQLITE_OPEN_READONLY, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_open_v2() failed");
 
     char iterate_over_clusters_st[512];
     sqlite3_stmt* iterate_over_clusters_stmt = NULL;
 
     snprintf(iterate_over_clusters_st, sizeof(iterate_over_clusters_st), "SELECT cluster_id,images FROM %s WHERE count >= %d",
-        clusters_table.c_str(), min_cluster_size);
+        table.c_str(), min_cluster_size);
 
     rc = sqlite3_prepare_v2(db, iterate_over_clusters_st, strlen(iterate_over_clusters_st), &iterate_over_clusters_stmt, NULL);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_prepare_v2() failed: \"%s\"", sqlite3_errmsg(db));
@@ -134,7 +122,7 @@ main(int argc, char** argv)
         // clang-format off
         args.add_options()
             ("h,help","show this help and exit")
-            ("d,db-file", "SQLite database file", cxxopts::value<std::string>())
+            ("d,database", "SQLite database file", cxxopts::value<std::string>())
             ("t,table", "name of a table with clusters in database", cxxopts::value<std::string>())
             ("s,min-size", "minimal cluster size", cxxopts::value<int>())
             ;
@@ -147,9 +135,9 @@ main(int argc, char** argv)
             return EXIT_SUCCESS;
         }
 
-        if ((opts.count("db-file") == 0 && opts.count("d") == 0) || (opts.count("table") == 0 && opts.count("t") == 0)) {
+        if ((opts.count("database") == 0 && opts.count("d") == 0) || (opts.count("table") == 0 && opts.count("t") == 0)) {
             std::cerr << std::endl
-                      << "Error: you have to specify --db-file and --table parameters. Run with --help for help." << std::endl
+                      << "Error: you have to specify --database and --table parameters. Run with --help for help." << std::endl
                       << std::endl;
             return EXIT_FAILURE;
         }
