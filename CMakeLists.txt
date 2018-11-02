@@ -59,8 +59,13 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 
 link_directories(${GRAPHICSMAGICK_LIBRARY_DIRS})
 
-set(SOURCES     ${imghash_SOURCE_DIR}/tokenizer.cpp)
+set(SOURCES
+    ${imghash_SOURCE_DIR}/tokenizer.cpp
+    ${imghash_SOURCE_DIR}/third_party/easylogging/easylogging++.cc
+)
+
 add_library(imghash-static STATIC ${SOURCES})
+set_target_properties(imghash-static PROPERTIES COMPILE_FLAGS "-std=c++11")
 set_target_properties(imghash-static PROPERTIES OUTPUT_NAME imghash)
 set_target_properties(imghash-static PROPERTIES LINKER_LANGUAGE CXX)
 

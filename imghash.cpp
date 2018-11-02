@@ -11,9 +11,12 @@
 #include <boost/foreach.hpp>
 
 #include <third_party/cxxopts/cxxopts.hpp>
+#include <third_party/easylogging/easylogging++.h>
 
 #include "dct_perceptual_hasher.hpp"
 #include "hash_delimeter.hpp"
+
+INITIALIZE_EASYLOGGINGPP
 
 using namespace imgdupl;
 
@@ -56,7 +59,7 @@ process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result)
         if (status) {
             result << phash << '\t' << filename << std::endl;
         } else {
-            std::cerr << "Failed at \'" << filename << "\'" << std::endl;
+            LOG(ERROR) << "Failed at \'" << filename << "\'";
         }
     }
 }
@@ -103,6 +106,7 @@ main(int argc, char** argv)
     args.add_options()
         ("h,help","show this help and exit")
         ("d,data", "path to a single image file or a directory with images", cxxopts::value<std::string>())
+        ("l,log", "path to a log file", cxxopts::value<std::string>()->default_value("/tmp/imghash.log"))
         ("r,result", "result file", cxxopts::value<std::string>())
         ;
     // clang-format on
@@ -133,11 +137,31 @@ main(int argc, char** argv)
     auto path = opts["data"].as<std::string>();
 
     if (bfs::exists(path)) {
+        el::Configurations easylogging_config;
+        easylogging_config.setToDefault();
+
+#ifndef NDEBUG
+        easylogging_config.set(el::Level::Info, el::ConfigurationType::Format, "%datetime %level %loc %msg");
+        easylogging_config.set(el::Level::Error, el::ConfigurationType::Format, "%datetime %level %loc %msg");
+        easylogging_config.set(el::Level::Warning, el::ConfigurationType::Format, "%datetime %level %loc %msg");
+#else
+        easylogging_config.set(el::Level::Info, el::ConfigurationType::Format, "%datetime %level %msg");
+        easylogging_config.set(el::Level::Error, el::ConfigurationType::Format, "%datetime %level %msg");
+        easylogging_config.set(el::Level::Warning, el::ConfigurationType::Format, "%datetime %level %msg");
+#endif
+
+        easylogging_config.setGlobally(el::ConfigurationType::Filename, opts["log"].as<std::string>());
+        easylogging_config.setGlobally(el::ConfigurationType::ToStandardOutput, "");
+        // default logger uses default configurations
+        el::Loggers::reconfigureLogger("default", easylogging_config);
+
+        LOG(INFO) << "imghash started";
         if (bfs::is_regular_file(path)) {
             process_file(path, hasher, result);
         } else if (bfs::is_directory(path)) {
             process_directory(path, hasher, result);
         }
+        LOG(INFO) << "imghash finished";
     } else {
         std::cerr << path << " does not exist" << std::endl;
         return EXIT_FAILURE;
