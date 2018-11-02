@@ -12,6 +12,7 @@
 
 #include <third_party/cxxopts/cxxopts.hpp>
 #include <third_party/easylogging/easylogging++.h>
+#include <progressbar/progressbar.h>
 
 #include "dct_perceptual_hasher.hpp"
 #include "hash_delimeter.hpp"
@@ -27,6 +28,7 @@ typedef DCTHasher<50, 64 * 2> Hasher;
 std::pair<bool, PHash> calc_image_hash(const std::string& image_file, const Hasher& hasher);
 void process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result);
 void process_directory(std::string directory, const Hasher& hasher, std::ofstream& result);
+size_t get_files_count(std::string directory);
 
 std::ostream&
 operator<<(std::ostream& out, const PHash& phash)
@@ -64,15 +66,42 @@ process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result)
     }
 }
 
+size_t
+get_files_count(std::string directory)
+{
+    size_t count = 0;
+
+    bfs::path root(directory);
+    bfs::recursive_directory_iterator cur_it(root), end_it;
+
+    for (; cur_it != end_it; ++cur_it) {
+        if (bfs::exists(cur_it->path()) && bfs::is_regular_file(cur_it->path())) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 void
 process_directory(std::string directory, const Hasher& hasher, std::ofstream& result)
 {
+    auto total = get_files_count(directory);
+    if (total == 0) {
+        return;
+    }
+
+    auto pb = progressbar_new("Images processed", total);
+
     bfs::path root(directory);
     bfs::recursive_directory_iterator cur_it(root), end_it;
 
     for (; cur_it != end_it; ++cur_it) {
         process_file(cur_it->path(), hasher, result);
+        progressbar_inc(pb);
     }
+
+    progressbar_finish(pb);
 }
 
 std::pair<bool, PHash>
