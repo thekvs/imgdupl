@@ -23,7 +23,7 @@ Example dataset can be downloaded from [here](https://s3-eu-west-1.amazonaws.com
 
 * You need to build perceptual hashes for the images.
 ```
-$ ./imghash /tmp/imgdupl-dataset-example >/tmp/hashes.txt
+$ ./imghash --data /tmp/imgdupl-dataset-example --result /tmp/hashes.txt
 ```
 * You need to export results into SQLite database.
 ```

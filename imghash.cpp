@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <string>
 #include <utility>
@@ -8,6 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
+
+#include <third_party/cxxopts/cxxopts.hpp>
 
 #include "dct_perceptual_hasher.hpp"
 #include "hash_delimeter.hpp"
@@ -18,10 +21,9 @@ namespace bfs = boost::filesystem;
 
 typedef DCTHasher<50, 64 * 2> Hasher;
 
-void usage(const char* program);
 std::pair<bool, PHash> calc_image_hash(const std::string& image_file, const Hasher& hasher);
-void process_file(const bfs::path& file, const Hasher& hasher);
-void process_directory(std::string directory, const Hasher& hasher);
+void process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result);
+void process_directory(std::string directory, const Hasher& hasher, std::ofstream& result);
 
 std::ostream&
 operator<<(std::ostream& out, const PHash& phash)
@@ -42,17 +44,7 @@ operator<<(std::ostream& out, const PHash& phash)
 }
 
 void
-usage(const char* program)
-{
-    std::cout << "Usage: " << program << " <path>" << std::endl;
-    std::cout << std::endl << "Where:" << std::endl;
-    std::cout << "  path  -- single file or directory (in this case process all files)" << std::endl;
-
-    exit(0);
-}
-
-void
-process_file(const bfs::path& file, const Hasher& hasher)
+process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result)
 {
     if (bfs::exists(file) && bfs::is_regular_file(file)) {
         std::string filename = file.string();
@@ -62,7 +54,7 @@ process_file(const bfs::path& file, const Hasher& hasher)
 
         boost::tie(status, phash) = calc_image_hash(filename, hasher);
         if (status) {
-            std::cout << phash << '\t' << filename << std::endl;
+            result << phash << '\t' << filename << std::endl;
         } else {
             std::cerr << "Failed at \'" << filename << "\'" << std::endl;
         }
@@ -70,13 +62,13 @@ process_file(const bfs::path& file, const Hasher& hasher)
 }
 
 void
-process_directory(std::string directory, const Hasher& hasher)
+process_directory(std::string directory, const Hasher& hasher, std::ofstream& result)
 {
     bfs::path root(directory);
     bfs::recursive_directory_iterator cur_it(root), end_it;
 
     for (; cur_it != end_it; ++cur_it) {
-        process_file(cur_it->path(), hasher);
+        process_file(cur_it->path(), hasher, result);
     }
 }
 
@@ -105,21 +97,46 @@ end:
 int
 main(int argc, char** argv)
 {
-    if (argc < 2) {
-        usage(argv[0]);
+    cxxopts::Options args(argv[0], "print clusters of perceptually similar images");
+
+    // clang-format off
+    args.add_options()
+        ("h,help","show this help and exit")
+        ("d,data", "path to a single image file or a directory with images", cxxopts::value<std::string>())
+        ("r,result", "result file", cxxopts::value<std::string>())
+        ;
+    // clang-format on
+
+    auto opts = args.parse(argc, argv);
+
+    if (opts.count("help")) {
+        std::cout << args.help() << std::endl;
+        return EXIT_SUCCESS;
+    }
+
+    if ((opts.count("data") == 0 && opts.count("d") == 0) || (opts.count("result") == 0 && opts.count("r") == 0)) {
+        std::cerr << std::endl
+                  << "Error: you have to specify --data and --result parameters. Run with --help for help." << std::endl
+                  << std::endl;
+        return EXIT_FAILURE;
     }
 
     Magick::InitializeMagick(NULL);
 
-    Hasher hasher;
+    std::ofstream result(opts["result"].as<std::string>().c_str());
+    if (result.fail()) {
+        std::cerr << "Error: couldn't open file '" << opts["result"].as<std::string>() << "' for writing" << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    std::string path = argv[1];
+    Hasher hasher;
+    auto path = opts["data"].as<std::string>();
 
     if (bfs::exists(path)) {
         if (bfs::is_regular_file(path)) {
-            process_file(path, hasher);
+            process_file(path, hasher, result);
         } else if (bfs::is_directory(path)) {
-            process_directory(path, hasher);
+            process_directory(path, hasher, result);
         }
     } else {
         std::cerr << path << " does not exist" << std::endl;

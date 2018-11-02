@@ -70,6 +70,7 @@ set(LINKLIBS    ${GRAPHICSMAGICK_LIBRARIES}
 )
 
 add_executable(imghash ${imghash_SOURCE_DIR}/imghash.cpp)
+set_target_properties(imghash PROPERTIES COMPILE_FLAGS "-std=c++11")
 target_link_libraries(imghash ${LINKLIBS} imghash-static)
 
 add_executable(clusterizer ${imghash_SOURCE_DIR}/clusterizer.cpp)
