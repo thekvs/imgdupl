@@ -3,3 +3,6 @@
 .ycm_extra_conf.*
 *.swp
 .vscode/
+build/
+compile_commands.json
+.clangd/
