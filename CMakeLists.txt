@@ -1,6 +1,8 @@
 project(imghash)
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_MODULE_PATH ${imghash_SOURCE_DIR}/cmake/)
 include(FindSSE)
 
