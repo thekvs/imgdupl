@@ -68,7 +68,7 @@ set(PROGRESSBAR_INSTALL_PREFIX ${PROGRESSBAR_PREFIX}/install)
 ExternalProject_Add(
     progressbar
     PREFIX ${PROGRESSBAR_PREFIX}
-    URL "https://github.com/thekvs/progressbar/archive/master.zip"
+    URL "https://github.com/doches/progressbar/archive/master.zip"
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROGRESSBAR_INSTALL_PREFIX}
     LOG_INSTALL ON
 )
