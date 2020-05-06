@@ -1,14 +1,12 @@
-#include <stdint.h>
-
+#include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <string>
 #include <utility>
+#include <tuple>
 
 #include <boost/filesystem.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 #include <third_party/cxxopts/cxxopts.hpp>
 #include <third_party/easylogging/easylogging++.h>
@@ -21,12 +19,12 @@ INITIALIZE_EASYLOGGINGPP
 
 using namespace imgdupl;
 
-namespace bfs = boost::filesystem;
+namespace fs = boost::filesystem;
 
 typedef DCTHasher<50, 64 * 2> Hasher;
 
 std::pair<bool, PHash> calc_image_hash(const std::string& image_file, const Hasher& hasher);
-void process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result);
+void process_file(const fs::path& file, const Hasher& hasher, std::ofstream& result);
 void process_directory(std::string directory, const Hasher& hasher, std::ofstream& result);
 size_t get_files_count(std::string directory);
 
@@ -35,7 +33,7 @@ operator<<(std::ostream& out, const PHash& phash)
 {
     bool is_first = true;
 
-    BOOST_FOREACH (const PHash::value_type& h, phash) {
+    for (const auto& h : phash) {
         if (is_first) {
             is_first = false;
         } else {
@@ -49,15 +47,15 @@ operator<<(std::ostream& out, const PHash& phash)
 }
 
 void
-process_file(const bfs::path& file, const Hasher& hasher, std::ofstream& result)
+process_file(const fs::path& file, const Hasher& hasher, std::ofstream& result)
 {
-    if (bfs::exists(file) && bfs::is_regular_file(file)) {
+    if (fs::exists(file) && fs::is_regular_file(file)) {
         std::string filename = file.string();
 
         bool status;
         PHash phash;
 
-        boost::tie(status, phash) = calc_image_hash(filename, hasher);
+        std::tie(status, phash) = calc_image_hash(filename, hasher);
         if (status) {
             result << phash << '\t' << filename << std::endl;
         } else {
@@ -71,11 +69,11 @@ get_files_count(std::string directory)
 {
     size_t count = 0;
 
-    bfs::path root(directory);
-    bfs::recursive_directory_iterator cur_it(root), end_it;
+    fs::path root(directory);
+    fs::recursive_directory_iterator cur_it(root), end_it;
 
     for (; cur_it != end_it; ++cur_it) {
-        if (bfs::exists(cur_it->path()) && bfs::is_regular_file(cur_it->path())) {
+        if (fs::exists(cur_it->path()) && fs::is_regular_file(cur_it->path())) {
             count++;
         }
     }
@@ -93,8 +91,8 @@ process_directory(std::string directory, const Hasher& hasher, std::ofstream& re
 
     auto pb = progressbar_new("Images processed", total);
 
-    bfs::path root(directory);
-    bfs::recursive_directory_iterator cur_it(root), end_it;
+    fs::path root(directory);
+    fs::recursive_directory_iterator cur_it(root), end_it;
 
     for (; cur_it != end_it; ++cur_it) {
         process_file(cur_it->path(), hasher, result);
@@ -120,7 +118,7 @@ calc_image_hash(const std::string& image_file, const Hasher& hasher)
         goto end;
     }
 
-    boost::tie(status, phash) = hasher.hash(image);
+    std::tie(status, phash) = hasher.hash(image);
 
 end:
     return std::make_pair(status, phash);
@@ -165,7 +163,7 @@ main(int argc, char** argv)
     Hasher hasher;
     auto path = opts["data"].as<std::string>();
 
-    if (bfs::exists(path)) {
+    if (fs::exists(path)) {
         el::Configurations easylogging_config;
         easylogging_config.setToDefault();
 
@@ -185,9 +183,9 @@ main(int argc, char** argv)
         el::Loggers::reconfigureLogger("default", easylogging_config);
 
         LOG(INFO) << "imghash started";
-        if (bfs::is_regular_file(path)) {
+        if (fs::is_regular_file(path)) {
             process_file(path, hasher, result);
-        } else if (bfs::is_directory(path)) {
+        } else if (fs::is_directory(path)) {
             process_directory(path, hasher, result);
         }
         LOG(INFO) << "imghash finished";
