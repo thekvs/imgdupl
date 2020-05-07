@@ -1,8 +1,7 @@
 .tags*
 *.pyc
-.ycm_extra_conf.*
 *.swp
-.vscode/
-build/
+.vscode
+build
 compile_commands.json
-.clangd/
+.clangd
