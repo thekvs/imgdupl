@@ -4,9 +4,13 @@ becomes not very accurate.
 
 ## Building
 
-This is a standard CMake project.
+```
+$ mkdir build && cd build
+$ cmake ../cmake_superbuild/ -DCMAKE_BUILD_TYPE=Release
+$ cmake --build .
+```
 
-Compilation was tested on Ubuntu 14.04 with packages from the list below installed by stantard
+Compilation was tested on Ubuntu 18.04+ with packages from the list below installed by stantard
 means (apt-get install etc.).
 
 ### Requirements:

@@ -1,8 +1,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-
-#include <stdint.h>
+#include <cstdint>
 
 #include <boost/lexical_cast.hpp>
 

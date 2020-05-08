@@ -1,15 +1,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <iostream>
 #include <fstream>
 
 #include <sqlite3.h>
 
 #include <boost/lexical_cast.hpp>
 
-#include <third_party/nlohmann/json.hpp>
-#include <third_party/cxxopts/cxxopts.hpp>
+#include <nlohmann/json.hpp>
+#include <cxxopts.hpp>
+#include <spdlog/spdlog.h>
 
 #include "hash_delimeter.hpp"
 #include "tokenizer.hpp"
@@ -99,7 +99,7 @@ print(const cxxopts::ParseResult& opts)
     }
 
     nlohmann::json js = clusters;
-    std::cout << js.dump(4) << std::endl;
+    fmt::print("{}\n", js.dump(4));
 
     rc = sqlite3_finalize(select_path_stmt);
     THROW_EXC_IF_FAILED(rc == SQLITE_OK, "sqlite3_finalize() failed: \"%s\"", sqlite3_errmsg(db));
@@ -131,20 +131,18 @@ main(int argc, char** argv)
         auto opts = args.parse(argc, argv);
 
         if (opts.count("help")) {
-            std::cout << args.help() << std::endl;
+            fmt::print("{}\n", args.help());
             return EXIT_SUCCESS;
         }
 
         if ((opts.count("database") == 0 && opts.count("d") == 0) || (opts.count("table") == 0 && opts.count("t") == 0)) {
-            std::cerr << std::endl
-                      << "Error: you have to specify --database and --table parameters. Run with --help for help." << std::endl
-                      << std::endl;
+            spdlog::error("you have to specify --database and --table parameters. Run with --help for help.");
             return EXIT_FAILURE;
         }
 
         print(opts);
     } catch (std::exception& exc) {
-        std::cerr << "Error: " << exc.what() << std::endl;
+        spdlog::error("{}\n", exc.what());
         return EXIT_FAILURE;
     }
 

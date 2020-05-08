@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <string>
@@ -8,20 +7,17 @@
 
 #include <boost/filesystem.hpp>
 
-#include <third_party/cxxopts/cxxopts.hpp>
-#include <third_party/easylogging/easylogging++.h>
+#include <cxxopts.hpp>
+#include <spdlog/spdlog.h>
 #include <progressbar/progressbar.h>
 
 #include "dct_perceptual_hasher.hpp"
 #include "hash_delimeter.hpp"
 
-INITIALIZE_EASYLOGGINGPP
-
 using namespace imgdupl;
+using Hasher = DCTHasher<50, 64 * 2>;
 
 namespace fs = boost::filesystem;
-
-typedef DCTHasher<50, 64 * 2> Hasher;
 
 std::pair<bool, PHash> calc_image_hash(const std::string& image_file, const Hasher& hasher);
 void process_file(const fs::path& file, const Hasher& hasher, std::ofstream& result);
@@ -31,17 +27,7 @@ size_t get_files_count(std::string directory);
 std::ostream&
 operator<<(std::ostream& out, const PHash& phash)
 {
-    bool is_first = true;
-
-    for (const auto& h : phash) {
-        if (is_first) {
-            is_first = false;
-        } else {
-            out << HASH_PRINT_DELIMETER;
-        }
-
-        out << h;
-    }
+    out << fmt::format("{}", fmt::join(phash, ","));
 
     return out;
 }
@@ -59,7 +45,7 @@ process_file(const fs::path& file, const Hasher& hasher, std::ofstream& result)
         if (status) {
             result << phash << '\t' << filename << std::endl;
         } else {
-            LOG(ERROR) << "Failed at \'" << filename << "\'";
+            spdlog::error("failed at '{}'", filename);
         }
     }
 }
@@ -70,10 +56,10 @@ get_files_count(std::string directory)
     size_t count = 0;
 
     fs::path root(directory);
-    fs::recursive_directory_iterator cur_it(root), end_it;
+    fs::recursive_directory_iterator cur_iter(root), end_iter;
 
-    for (; cur_it != end_it; ++cur_it) {
-        if (fs::exists(cur_it->path()) && fs::is_regular_file(cur_it->path())) {
+    for (; cur_iter != end_iter; ++cur_iter) {
+        if (fs::exists(cur_iter->path()) && fs::is_regular_file(cur_iter->path())) {
             count++;
         }
     }
@@ -92,10 +78,10 @@ process_directory(std::string directory, const Hasher& hasher, std::ofstream& re
     auto pb = progressbar_new("Images processed", total);
 
     fs::path root(directory);
-    fs::recursive_directory_iterator cur_it(root), end_it;
+    fs::recursive_directory_iterator cur_iter(root), end_iter;
 
-    for (; cur_it != end_it; ++cur_it) {
-        process_file(cur_it->path(), hasher, result);
+    for (; cur_iter != end_iter; ++cur_iter) {
+        process_file(cur_iter->path(), hasher, result);
         progressbar_inc(pb);
     }
 
@@ -133,7 +119,6 @@ main(int argc, char** argv)
     args.add_options()
         ("h,help","show this help and exit")
         ("d,data", "path to a single image file or a directory with images", cxxopts::value<std::string>())
-        ("l,log", "path to a log file", cxxopts::value<std::string>()->default_value("/tmp/imghash.log"))
         ("r,result", "result file", cxxopts::value<std::string>())
         ;
     // clang-format on
@@ -141,22 +126,20 @@ main(int argc, char** argv)
     auto opts = args.parse(argc, argv);
 
     if (opts.count("help")) {
-        std::cout << args.help() << std::endl;
+        fmt::print("{}\n", args.help());
         return EXIT_SUCCESS;
     }
 
     if ((opts.count("data") == 0 && opts.count("d") == 0) || (opts.count("result") == 0 && opts.count("r") == 0)) {
-        std::cerr << std::endl
-                  << "Error: you have to specify --data and --result parameters. Run with --help for help." << std::endl
-                  << std::endl;
+        spdlog::error("you have to specify --data and --result parameters. Run with --help for help.");
         return EXIT_FAILURE;
     }
 
-    Magick::InitializeMagick(NULL);
+    Magick::InitializeMagick(nullptr);
 
     std::ofstream result(opts["result"].as<std::string>().c_str());
     if (result.fail()) {
-        std::cerr << "Error: couldn't open file '" << opts["result"].as<std::string>() << "' for writing" << std::endl;
+        spdlog::error("couldn't open file '{}' for writting!", opts["result"].as<std::string>());
         return EXIT_FAILURE;
     }
 
@@ -164,33 +147,13 @@ main(int argc, char** argv)
     auto path = opts["data"].as<std::string>();
 
     if (fs::exists(path)) {
-        el::Configurations easylogging_config;
-        easylogging_config.setToDefault();
-
-#ifndef NDEBUG
-        easylogging_config.set(el::Level::Info, el::ConfigurationType::Format, "%datetime %level %loc %msg");
-        easylogging_config.set(el::Level::Error, el::ConfigurationType::Format, "%datetime %level %loc %msg");
-        easylogging_config.set(el::Level::Warning, el::ConfigurationType::Format, "%datetime %level %loc %msg");
-#else
-        easylogging_config.set(el::Level::Info, el::ConfigurationType::Format, "%datetime %level %msg");
-        easylogging_config.set(el::Level::Error, el::ConfigurationType::Format, "%datetime %level %msg");
-        easylogging_config.set(el::Level::Warning, el::ConfigurationType::Format, "%datetime %level %msg");
-#endif
-
-        easylogging_config.setGlobally(el::ConfigurationType::Filename, opts["log"].as<std::string>());
-        easylogging_config.setGlobally(el::ConfigurationType::ToStandardOutput, "");
-        // default logger uses default configurations
-        el::Loggers::reconfigureLogger("default", easylogging_config);
-
-        LOG(INFO) << "imghash started";
         if (fs::is_regular_file(path)) {
             process_file(path, hasher, result);
         } else if (fs::is_directory(path)) {
             process_directory(path, hasher, result);
         }
-        LOG(INFO) << "imghash finished";
     } else {
-        std::cerr << path << " does not exist" << std::endl;
+        spdlog::error("'{}' does not exist!\n", path);
         return EXIT_FAILURE;
     }
 
