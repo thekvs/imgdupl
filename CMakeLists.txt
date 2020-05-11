@@ -79,12 +79,6 @@ set_target_properties(
             OUTPUT_NAME imghash
 )
 
-set(LINKLIBS
-    ${GRAPHICSMAGICK_LIBRARIES}
-    ${Boost_LIBRARIES}
-    ${SQLITE3_LIBRARIES}
-)
-
 add_executable(
     imghash
     ${imghash_SOURCE_DIR}/imghash.cpp
@@ -98,7 +92,6 @@ target_include_directories(
             ${Boost_INCLUDE_DIRS}
             ${GRAPHICSMAGICK_INCLUDE_DIRS}
             ${EIGEN3_INCLUDE_DIRS}
-            ${SQLITE3_INCLUDE_DIRS}
             ${CURSES_INCLUDE_DIRS}
             ${PROGRESSBAR_INCLUDE_DIRS}
 )
@@ -114,9 +107,9 @@ set_target_properties(
 target_link_libraries(
     imghash
         PRIVATE
-            ${PROGRESSBAR_LIBRARIES}
             imghash-static
             spdlog::spdlog
+            ${PROGRESSBAR_LIBRARIES}
             ${GRAPHICSMAGICK_LIBRARIES}
             ${Boost_LIBRARIES}
             ${SQLITE3_LIBRARIES}
@@ -133,10 +126,7 @@ target_include_directories(
         SYSTEM PRIVATE
             ${CXXOPTS_ROOT}/include/
             ${Boost_INCLUDE_DIRS}
-            ${GRAPHICSMAGICK_INCLUDE_DIRS}
-            ${EIGEN3_INCLUDE_DIRS}
-            ${SQLITE3_INCLUDE_DIRS}
-            ${CURSES_INCLUDE_DIRS}
+            ${SQLITE3_LIBRARIES}
 )
 
 set_target_properties(
@@ -232,7 +222,7 @@ set_target_properties(
 target_link_libraries(
     print-clusters
         PRIVATE
-            ${SQLITE3_LIBRARIES}
             spdlog::spdlog
             imghash-static
+            ${SQLITE3_LIBRARIES}
 )
