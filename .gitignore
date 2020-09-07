@@ -1,7 +1,8 @@
 .tags*
 *.pyc
 *.swp
-.vscode
-build
+/.vscode/
+/build/
+/.clangd/
+/.cache/
 compile_commands.json
-.clangd
