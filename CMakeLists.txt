@@ -31,14 +31,6 @@ if (SSE4_2_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W")
-
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-endif()
-
 include(FindPkgConfig)
 include(FindThreads)
 include(CheckTypeSize)
@@ -50,11 +42,11 @@ find_package(Boost REQUIRED COMPONENTS thread filesystem system)
 find_package(Curses REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 
-pkg_check_modules(GRAPHICSMAGICK REQUIRED GraphicsMagick++)
-pkg_check_modules(EIGEN3 REQUIRED eigen3)
-pkg_check_modules(SQLITE3 REQUIRED sqlite3)
+pkg_check_modules(GRAPHICSMAGICK REQUIRED IMPORTED_TARGET GraphicsMagick++)
+pkg_check_modules(EIGEN3 REQUIRED IMPORTED_TARGET eigen3)
 
 add_library(
     imghash-static
@@ -66,7 +58,7 @@ target_include_directories(
     imghash-static
         SYSTEM PRIVATE
             ${imghash_SOURCE_DIR}
-            ${Boost_INCLUDE_DIRS}
+            Boost::boost
 )
 
 target_compile_options(imghash-static PRIVATE -W -Wall -Wextra)
@@ -84,14 +76,12 @@ add_executable(
     ${imghash_SOURCE_DIR}/imghash.cpp
 )
 
+target_compile_options(imghash PRIVATE -W -Wall -Wextra)
+
 target_include_directories(
     imghash
         SYSTEM PRIVATE
             ${imghash_SOURCE_DIR}
-            ${CXXOPTS_ROOT}/include/
-            ${Boost_INCLUDE_DIRS}
-            ${GRAPHICSMAGICK_INCLUDE_DIRS}
-            ${EIGEN3_INCLUDE_DIRS}
             ${CURSES_INCLUDE_DIRS}
             ${PROGRESSBAR_INCLUDE_DIRS}
 )
@@ -109,10 +99,12 @@ target_link_libraries(
         PRIVATE
             imghash-static
             spdlog::spdlog
+            cxxopts::cxxopts
+            SQLite::SQLite3
+            Boost::filesystem
+            PkgConfig::EIGEN3
+            PkgConfig::GRAPHICSMAGICK
             ${PROGRESSBAR_LIBRARIES}
-            ${GRAPHICSMAGICK_LIBRARIES}
-            ${Boost_LIBRARIES}
-            ${SQLITE3_LIBRARIES}
             ${CURSES_LIBRARIES}
 )
 
@@ -121,13 +113,7 @@ add_executable(
     ${imghash_SOURCE_DIR}/clusterizer.cpp
 )
 
-target_include_directories(
-    clusterizer
-        SYSTEM PRIVATE
-            ${CXXOPTS_ROOT}/include/
-            ${Boost_INCLUDE_DIRS}
-            ${SQLITE3_LIBRARIES}
-)
+target_compile_options(clusterizer PRIVATE -W -Wall -Wextra)
 
 set_target_properties(
     clusterizer
@@ -142,7 +128,8 @@ target_link_libraries(
     clusterizer
         PRIVATE
             imghash-static
-            ${SQLITE3_LIBRARIES}
+            cxxopts::cxxopts
+            SQLite::SQLite3
             Threads::Threads
 )
 
@@ -151,11 +138,7 @@ add_executable(
     ${imghash_SOURCE_DIR}/distance.cpp
 )
 
-target_include_directories(
-    distance
-        SYSTEM PRIVATE
-            ${CXXOPTS_ROOT}/include/
-)
+target_compile_options(distance PRIVATE -W -Wall -Wextra)
 
 set_target_properties(
     distance
@@ -170,6 +153,7 @@ target_link_libraries(
     distance
         PRIVATE
             imghash-static
+            cxxopts::cxxopts
 )
 
 add_executable(
@@ -177,11 +161,7 @@ add_executable(
     ${imghash_SOURCE_DIR}/export2db.cpp
 )
 
-target_include_directories(
-    export2db
-        SYSTEM PRIVATE
-            ${CXXOPTS_ROOT}/include/
-)
+target_compile_options(export2db PRIVATE -W -Wall -Wextra)
 
 set_target_properties(
     export2db
@@ -195,7 +175,8 @@ target_link_libraries(
     export2db
         PRIVATE
             imghash-static
-            ${SQLITE3_LIBRARIES}
+            cxxopts::cxxopts
+            SQLite::SQLite3
 )
 
 add_executable(
@@ -203,11 +184,12 @@ add_executable(
     ${imghash_SOURCE_DIR}/print-clusters.cpp
 )
 
+target_compile_options(print-clusters PRIVATE -W -Wall -Wextra)
+
 target_include_directories(
     print-clusters
         SYSTEM PRIVATE
             ${imghash_SOURCE_DIR}
-            ${CXXOPTS_ROOT}/include/
             ${NLOHMANN_JSON_INCLUDE_DIRS}
 )
 
@@ -222,7 +204,8 @@ set_target_properties(
 target_link_libraries(
     print-clusters
         PRIVATE
-            spdlog::spdlog
             imghash-static
-            ${SQLITE3_LIBRARIES}
+            spdlog::spdlog
+            cxxopts::cxxopts
+            SQLite::SQLite3
 )
