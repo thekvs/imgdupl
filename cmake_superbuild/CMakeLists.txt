@@ -2,17 +2,9 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(imgdupl-superbuild)
 
 include(ExternalProject)
-include(FindPkgConfig)
 include(ProcessorCount)
 
 ProcessorCount(CPU_CORES)
-
-find_package(Git)
-if (NOT Git_FOUND)
-    message(FATAL_ERROR "Git NOT found")
-endif()
-
-find_package(PkgConfig REQUIRED)
 
 set(CXXOPTS_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/cxxopts)
 set(CXXOPTS_INSTALL_PREFIX ${CXXOPTS_PREFIX}/install)
@@ -45,22 +37,17 @@ ExternalProject_Add(
     LOG_INSTALL ON
 )
 
-set(PROGRESSBAR_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/progressbar)
-set(PROGRESSBAR_INSTALL_PREFIX ${PROGRESSBAR_PREFIX}/install)
+set(INDICATORS_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/indicators)
+set(INDICATORS_INSTALL_PREFIX ${INDICATORS_PREFIX}/install)
 ExternalProject_Add(
-    progressbar
-    PREFIX ${PROGRESSBAR_PREFIX}
-    GIT_REPOSITORY "https://github.com/doches/progressbar.git"
-    GIT_SHALLOW ON
+    indicators
+    PREFIX ${INDICATORS_PREFIX}
+    URL "https://github.com/p-ranav/indicators/archive/v1.9.tar.gz"
+    URL_HASH MD5=012f7589be3e976dc193c51b766dd233
     CMAKE_ARGS
-        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-        -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-        -DCMAKE_INSTALL_PREFIX=${PROGRESSBAR_INSTALL_PREFIX}
+        -DCMAKE_INSTALL_PREFIX=${INDICATORS_INSTALL_PREFIX}
     LOG_INSTALL ON
 )
-set(PROGRESSBAR_INCLUDE_DIRS ${PROGRESSBAR_INSTALL_PREFIX}/include)
-set(PROGRESSBAR_LIBRARIES ${PROGRESSBAR_INSTALL_PREFIX}/lib/libprogressbar.a)
 
 set(NLOHMANN_JSON_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/json)
 set(NLOHMANN_JSON_INSTALL_PREFIX ${NLOHMANN_JSON_PREFIX}/install)
@@ -84,19 +71,18 @@ ExternalProject_Add(
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.."
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/imgdupl"
     INSTALL_COMMAND ""
-    BUILD_COMMAND $(CMAKE_COMMAND) --build . -- -j${CPU_CORES}
     CMAKE_ARGS
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
         -Dcxxopts_DIR:PATH=${CXXOPTS_INSTALL_PREFIX}/lib/cmake/cxxopts/
         -Dspdlog_DIR:PATH=${SPDLOG_INSTALL_PREFIX}/lib/cmake/spdlog
-        -DPROGRESSBAR_INCLUDE_DIRS:STRING=${PROGRESSBAR_INCLUDE_DIRS}
-        -DPROGRESSBAR_LIBRARIES:STRING=${PROGRESSBAR_LIBRARIES}
+        -Dindicators_DIR:PATH=${INDICATORS_INSTALL_PREFIX}/lib/cmake/indicators
         -DNLOHMANN_JSON_INCLUDE_DIRS:STRING=${NLOHMANN_JSON_INCLUDE_DIRS}
+    BUILD_COMMAND $(CMAKE_COMMAND) --build . -- -j${CPU_CORES}
     DEPENDS
         cxxopts
         spdlog
-        progressbar
+        indicators
         nlohmann_json
 )

@@ -42,6 +42,7 @@ find_package(Boost REQUIRED COMPONENTS thread filesystem system)
 find_package(Curses REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(indicators CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -83,7 +84,6 @@ target_include_directories(
         SYSTEM PRIVATE
             ${imghash_SOURCE_DIR}
             ${CURSES_INCLUDE_DIRS}
-            ${PROGRESSBAR_INCLUDE_DIRS}
 )
 
 set_target_properties(
@@ -100,11 +100,11 @@ target_link_libraries(
             imghash-static
             spdlog::spdlog
             cxxopts::cxxopts
+            indicators::indicators
             SQLite::SQLite3
             Boost::filesystem
             PkgConfig::EIGEN3
             PkgConfig::GRAPHICSMAGICK
-            ${PROGRESSBAR_LIBRARIES}
             ${CURSES_LIBRARIES}
 )
 

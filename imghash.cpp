@@ -9,7 +9,8 @@
 
 #include <cxxopts.hpp>
 #include <spdlog/spdlog.h>
-#include <progressbar/progressbar.h>
+#include <indicators/progress_bar.hpp>
+#include <indicators/cursor_control.hpp>
 
 #include "dct_perceptual_hasher.hpp"
 #include "hash_delimeter.hpp"
@@ -75,17 +76,31 @@ process_directory(std::string directory, const Hasher& hasher, std::ofstream& re
         return;
     }
 
-    auto pb = progressbar_new("Images processed", total);
+    // clang-format off
+    indicators::ProgressBar pb {
+        indicators::option::BarWidth {80},
+        indicators::option::Start {"["},
+        indicators::option::Fill {"="},
+        indicators::option::Lead {">"},
+        indicators::option::Remainder {" "},
+        indicators::option::End {"]"},
+        indicators::option::ForegroundColor {indicators::Color::white},
+        indicators::option::FontStyles {std::vector<indicators::FontStyle> {indicators::FontStyle::bold}},
+        indicators::option::MaxProgress{total}
+    };
+    // clang-format on
 
     fs::path root(directory);
     fs::recursive_directory_iterator cur_iter(root), end_iter;
 
-    for (; cur_iter != end_iter; ++cur_iter) {
+    for (size_t i = 1; cur_iter != end_iter; ++cur_iter, i++) {
         process_file(cur_iter->path(), hasher, result);
-        progressbar_inc(pb);
+        pb.set_option(
+            indicators::option::PostfixText {"Processing images: " + std::to_string(i) + "/" + std::to_string(total)});
+        pb.tick();
     }
 
-    progressbar_finish(pb);
+    indicators::show_console_cursor(true);
 }
 
 std::pair<bool, PHash>
