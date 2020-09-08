@@ -39,7 +39,6 @@ include(CheckCXXCompilerFlag)
 include(ExternalProject)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system)
-find_package(Curses REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(indicators CONFIG REQUIRED)
@@ -83,7 +82,6 @@ target_include_directories(
     imghash
         SYSTEM PRIVATE
             ${imghash_SOURCE_DIR}
-            ${CURSES_INCLUDE_DIRS}
 )
 
 set_target_properties(
@@ -105,7 +103,6 @@ target_link_libraries(
             Boost::filesystem
             PkgConfig::EIGEN3
             PkgConfig::GRAPHICSMAGICK
-            ${CURSES_LIBRARIES}
 )
 
 add_executable(
