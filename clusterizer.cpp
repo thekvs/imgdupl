@@ -230,7 +230,8 @@ read_data_from_db(std::string name, Images& images)
         }
 
         uint32_t image_id = sqlite3_column_int(stmt, 0);
-        std::string hash_data = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
+        std::string hash_data
+            = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
         PHash hash = make_hash(hash_data);
 
         images.push_back(Image(hash, image_id));
@@ -265,7 +266,11 @@ distance(const PHash& mh1, const PHash& mh2, int threshold)
 }
 
 void
-make_cluster(const PHash& cluster_base_hash, Images::iterator cur_it, Images::iterator end_it, int threshold, ClusterEntries& entries)
+make_cluster(const PHash& cluster_base_hash,
+    Images::iterator cur_it,
+    Images::iterator end_it,
+    int threshold,
+    ClusterEntries& entries)
 {
     assert(cur_it != end_it);
 
@@ -305,7 +310,8 @@ compactify(Images::iterator cur_it, Images::iterator end_it)
     Images images;
     images.reserve(std::distance(cur_it, end_it));
 
-    std::copy_if(cur_it, end_it, std::back_inserter(images), [](Images::value_type const& v) { return v.processed == 0; });
+    std::copy_if(
+        cur_it, end_it, std::back_inserter(images), [](Images::value_type const& v) { return v.processed == 0; });
 
     return images;
 }

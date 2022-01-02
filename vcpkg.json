@@ -1,0 +1,14 @@
+{
+    "name": "imgdupl",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "cxxopts",
+        "spdlog",
+        "indicators",
+        "nlohmann-json",
+        "boost",
+        "eigen3",
+        "fmt",
+        "sqlite3"
+    ]
+}

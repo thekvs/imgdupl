@@ -1,25 +1,31 @@
+- [About](#about)
+- [Building](#building)
+  - [Requirements](#requirements)
+- [Usage](#usage)
+
+## About
+
 This is a set of utilities to find perceptual similar images in a small to medium data sets.
 It's not usefull on data sets which contains more than approx. 1000000 images since method used
 becomes not very accurate.
 
 ## Building
 
-```
-$ mkdir build && cd build
-$ cmake ../cmake_superbuild/ -DCMAKE_BUILD_TYPE=Release
-$ cmake --build .
-```
+1. [Install vcpkg](https://vcpkg.io/en/getting-started.html).
+2. `cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-release -DCMAKE_BUILD_TYPE=Release`
+3. `cmake --build build`
+4. Binaries will be located in the `build` directory.
 
 Compilation was tested on Ubuntu 18.04+ with packages from the list below installed by stantard
 means (apt-get install etc.).
 
-### Requirements:
+### Requirements
+
 * GCC >= 4.8 (for C++11 features)
 * CMake
 * [GraphicsMagick](http://www.graphicsmagick.org/)
-* Boost
-* [Eigen3](http://eigen.tuxfamily.org/)
-* Sqlite3
+
+All other dependencies will be managed by vcpkg & cmake.
 
 ## Usage
 
