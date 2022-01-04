@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import sys
-import struct
 import random
-import threading
-import web
 import sqlite3
+import struct
+import sys
+import threading
+
 import magic
+import web
 
 
 class Clusters:
@@ -72,7 +73,7 @@ urls = (
     '/(\d+)/grid', 'Thumbnails',
     '/(\d+)/list', 'Fullsize',
     '/(\d+)/image', 'Image'
-    )
+)
 
 
 render = web.template.render('templates/')
@@ -80,10 +81,10 @@ render = web.template.render('templates/')
 form = web.form
 clusterForm = form.Form(
     form.Textbox('show_cluster',
-        form.notnull,
-        form.regexp('\d+', 'Must be a digit'),
-        form.Validator('Cluster not found', lambda x: int(x) in clusters),
-        description='Show cluster:'))
+                 form.notnull,
+                 form.regexp('\d+', 'Must be a digit'),
+                 form.Validator('Cluster not found', lambda x: int(x) in clusters),
+                 description='Show cluster:'))
 
 
 def testForm():
@@ -110,6 +111,7 @@ class Thumbnails:
         if cluster not in clusters:
             raise web.notfound()
         form = testForm()
+
         def make_url(img):
             return "/%i/image" % img
         return render_base(form, render.grid(cluster, clusters[cluster], make_url))
@@ -121,6 +123,7 @@ class Fullsize:
         if cluster not in clusters:
             raise web.notfound()
         form = testForm()
+
         def make_url(img):
             return "/%i/image" % img
         return render_base(form, render.list(cluster, clusters[cluster], make_url))
