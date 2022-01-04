@@ -55,7 +55,10 @@ $ print-clusters --database /tmp/imgdupl.db --table clusters_32 --min-size 3
 You may vary perceptual hashes matching threshold constant (second argument to the clusterizer utility) to
 improve quality.
 
-If you want to view clusterization results more visually you can run www stand from the viewer directory:
-```
-$ ./webstand.py 127.0.0.1:9090 /tmp/imgdupl.db clusters_32
-```
+If you want to view clusterization results more visually you can run viewer:
+
+1. `python3 -m venv .venv`
+2. `source .venv/bin/activate`
+3. `pip install --upgrade pip`
+4. `pip install -r viewer/requirements.txt`
+5. `./viewer/webstand.py 127.0.0.1:9090 /tmp/imgdupl.db clusters_32`
