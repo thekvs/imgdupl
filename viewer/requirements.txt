@@ -1,2 +1,2 @@
 web.py==0.62
-python-magic
+python-magic==0.4.24
