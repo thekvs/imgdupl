@@ -6,7 +6,9 @@
         "spdlog",
         "indicators",
         "nlohmann-json",
-        "boost",
+        "boost-filesystem",
+        "boost-tokenizer",
+        "boost-lexical-cast",
         "eigen3",
         "fmt",
         "sqlite3"
