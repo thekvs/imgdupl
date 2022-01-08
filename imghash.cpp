@@ -36,18 +36,16 @@ operator<<(std::ostream& out, const PHash& phash)
 void
 process_file(const fs::path& file, const Hasher& hasher, std::ofstream& result)
 {
-    if (fs::exists(file) && fs::is_regular_file(file)) {
-        std::string filename = file.string();
+    std::string filename = file.string();
 
-        bool status;
-        PHash phash;
+    bool status;
+    PHash phash;
 
-        std::tie(status, phash) = calc_image_hash(filename, hasher);
-        if (status) {
-            result << phash << '\t' << filename << std::endl;
-        } else {
-            spdlog::error("failed at '{}'", filename);
-        }
+    std::tie(status, phash) = calc_image_hash(filename, hasher);
+    if (status) {
+        result << phash << '\t' << filename << std::endl;
+    } else {
+        spdlog::error("failed at '{}'", filename);
     }
 }
 
@@ -93,11 +91,15 @@ process_directory(std::string directory, const Hasher& hasher, std::ofstream& re
     fs::path root(directory);
     fs::recursive_directory_iterator cur_iter(root), end_iter;
 
-    for (size_t i = 1; cur_iter != end_iter; ++cur_iter, i++) {
-        process_file(cur_iter->path(), hasher, result);
-        pb.set_option(
-            indicators::option::PostfixText {"Processing images: " + std::to_string(i) + "/" + std::to_string(total)});
-        pb.tick();
+    for (size_t processed = 0; cur_iter != end_iter; ++cur_iter) {
+        const auto& file = cur_iter->path();
+        if (fs::exists(file) && fs::is_regular_file(file)) {
+            process_file(file, hasher, result);
+            processed++;
+            pb.set_option(indicators::option::PostfixText {
+                "Processing: " + std::to_string(processed) + "/" + std::to_string(total)});
+            pb.tick();
+        }
     }
 
     indicators::show_console_cursor(true);
