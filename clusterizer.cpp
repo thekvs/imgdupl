@@ -157,8 +157,8 @@ public:
     }
 };
 
-typedef std::shared_ptr<Task> TaskSmartPtr;
-typedef ConcurrentQueue<TaskSmartPtr> TasksQueue;
+typedef std::shared_ptr<Task> TaskPtr;
+typedef ConcurrentQueue<TaskPtr> TasksQueue;
 
 std::ostream&
 operator<<(std::ostream& out, const PHash& mhash)
@@ -285,7 +285,7 @@ make_cluster(const PHash& cluster_base_hash,
 }
 
 void
-worker(int threshold, TaskSmartPtr task, TasksQueue& accomplished_tasks_queue)
+worker(int threshold, TaskPtr task, TasksQueue& accomplished_tasks_queue)
 {
     make_cluster(task->cluster_base_hash, task->cur_it, task->end_it, threshold, task->cluster_entries);
     accomplished_tasks_queue.push(task);
@@ -408,7 +408,7 @@ main(int argc, char** argv)
             pool.wait_for_tasks();
 
             // gather results
-            TaskSmartPtr task;
+            TaskPtr task;
 
             for (int i = 0; i < threads_num; i++) {
                 accomplished_tasks_queue.wait_and_pop(task);
