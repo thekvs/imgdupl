@@ -8,9 +8,9 @@
         "nlohmann-json",
         "boost-filesystem",
         "boost-tokenizer",
-        "boost-lexical-cast",
         "eigen3",
         "fmt",
-        "sqlite3"
+        "sqlite3",
+        "bshoshany-thread-pool"
     ]
 }

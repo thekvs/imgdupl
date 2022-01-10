@@ -45,12 +45,14 @@ find_package(Threads REQUIRED)
 
 pkg_check_modules(GRAPHICSMAGICK REQUIRED IMPORTED_TARGET GraphicsMagick++)
 
+find_path(BSHOSHANY_THREAD_POOL_INCLUDE_DIRS "thread_pool.hpp")
+
 add_library(imghash-static STATIC ${imghash_SOURCE_DIR}/tokenizer.cpp)
 
 target_include_directories(imghash-static SYSTEM PRIVATE ${imghash_SOURCE_DIR})
 target_compile_options(imghash-static PRIVATE -W -Wall -Wextra)
 set_target_properties(imghash-static PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     OUTPUT_NAME imghash
@@ -63,7 +65,7 @@ add_executable(
 target_compile_options(imghash PRIVATE -W -Wall -Wextra)
 target_include_directories(imghash SYSTEM PRIVATE ${imghash_SOURCE_DIR} ${GRAPHICSMAGICK_INCLUDE_DIRS})
 set_target_properties(imghash PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
 )
@@ -88,9 +90,10 @@ add_executable(
 )
 
 target_compile_options(clusterizer PRIVATE -W -Wall -Wextra)
+target_include_directories(clusterizer PRIVATE ${BSHOSHANY_THREAD_POOL_INCLUDE_DIRS})
 
 set_target_properties(clusterizer PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     COMPILE_FLAGS "-mpopcnt"
@@ -110,7 +113,7 @@ add_executable(distance
 target_compile_options(distance PRIVATE -W -Wall -Wextra)
 
 set_target_properties(distance PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     COMPILE_FLAGS "-mpopcnt"
@@ -129,7 +132,7 @@ add_executable(
 target_compile_options(export2db PRIVATE -W -Wall -Wextra)
 
 set_target_properties(export2db PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
 )
@@ -149,7 +152,7 @@ target_compile_options(print-clusters PRIVATE -W -Wall -Wextra)
 
 target_include_directories(print-clusters SYSTEM PRIVATE ${imghash_SOURCE_DIR})
 set_target_properties(print-clusters PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
 )
