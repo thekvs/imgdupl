@@ -8,6 +8,7 @@
         "nlohmann-json",
         "boost-filesystem",
         "boost-tokenizer",
+        "boost-lexical-cast",
         "eigen3",
         "fmt",
         "sqlite3",
